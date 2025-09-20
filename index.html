@@ -14,8 +14,10 @@
     .weak{ color:red; font-weight:700; }
     ul{ margin-top:8px; }
     pre{ background:#eee; padding:10px; border-radius:6px; overflow:auto; }
-    #pw-feedback { color:#333; }
-    #pw-score { color:#111; }
+    #pw-meter { height:10px; background:#eee; border-radius:6px; overflow:hidden; margin-top:10px; }
+    #pw-meter-bar { height:100%; width:0%; background:#e74c3c; transition:width 0.3s; }
+    #pw-score { margin-top:6px; font-weight:600; }
+    #pw-feedback { margin-top:6px; color:#333; }
   </style>
 </head>
 <body>
@@ -27,9 +29,16 @@
     <button type="submit">Check</button>
   </form>
 
+  <!-- Client-side meter -->
+  <div id="pw-meter">
+    <div id="pw-meter-bar"></div>
+  </div>
+  <div id="pw-score"></div>
+  <ul id="pw-feedback"></ul>
+
   {% if result %}
   <div class="card">
-    <h3>Result: <span class="{{ 'strong' if result.score_pct>=60 else 'weak' }}">{{ result.strength }}</span></h3>
+    <h3>Server-side Result: <span class="{{ 'strong' if result.score_pct>=60 else 'weak' }}">{{ result.strength }}</span></h3>
     <p><strong>Score:</strong> {{ result.score_pct }}% ({{ result.points }} points)</p>
     <p><strong>Length:</strong> {{ result.length }} characters — Unique characters: {{ result.unique_chars }}</p>
     <p><strong>Contains:</strong>
@@ -46,67 +55,49 @@
       {% endfor %}
     </ul>
     {% endif %}
-
-    <h4>Why this matters</h4>
-    <p>Strong passwords are a basic but critical part of protecting accounts and data.</p>
-    <h4>Example (do not use real passwords):</h4>
-    <pre>Weak: password123  | Strong: Tr0ub4dor&3x!</pre>
   </div>
   {% endif %}
 
   <hr>
   <p>Project by <strong>Surijiddinov Xudoyor</strong> — part of SafeZone cyber demos. See source on GitHub.</p>
- 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const pwInput = document.querySelector('input[name="password"]');
-  if(!pwInput) return;
 
-  // Создаём блок для показа метрики
-  const meter = document.createElement('div');
-  meter.style.marginTop = '12px';
-  meter.innerHTML = `
-    <div id="pw-meter" style="height:10px;background:#eee;border-radius:6px;overflow:hidden;">
-      <div id="pw-meter-bar" style="height:100%;width:0%;background:#e74c3c;"></div>
-    </div>
-    <div id="pw-score" style="margin-top:6px;font-weight:600;"></div>
-    <ul id="pw-feedback" style="margin-top:6px;"></ul>
-  `;
-  pwInput.parentNode.insertBefore(meter, pwInput.nextSibling);
+  <!-- zxcvbn library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const pwInput = document.querySelector('input[name="password"]');
+      const bar = document.getElementById('pw-meter-bar');
+      const scoreEl = document.getElementById('pw-score');
+      const feedbackEl = document.getElementById('pw-feedback');
 
-  function updateMeter() {
-    const val = pwInput.value || '';
-    const res = zxcvbn(val);
-    const score = res.score; // 0..4
-    const pct = (score / 4) * 100;
-    const bar = document.getElementById('pw-meter-bar');
-    bar.style.width = pct + '%';
+      function updateMeter() {
+        const val = pwInput.value || '';
+        const res = zxcvbn(val);
+        const score = res.score; // 0..4
+        const pct = (score / 4) * 100;
 
-    // цвет
-    if (score <= 1) bar.style.background = '#e74c3c';
-    else if (score == 2) bar.style.background = '#f39c12';
-    else if (score == 3) bar.style.background = '#27ae60';
-    else bar.style.background = '#2ecc71';
+        bar.style.width = pct + '%';
 
-    const scoreText = ['Very weak','Weak','Fair','Strong','Very strong'][score];
-    document.getElementById('pw-score').innerText = `Strength: ${scoreText} (${pct}%)`;
+        if (score <= 1) bar.style.background = '#e74c3c';
+        else if (score == 2) bar.style.background = '#f39c12';
+        else if (score == 3) bar.style.background = '#27ae60';
+        else bar.style.background = '#2ecc71';
 
-    const feedback = document.getElementById('pw-feedback');
-    feedback.innerHTML = '';
-    if (res.feedback && res.feedback.suggestions) {
-      res.feedback.suggestions.forEach(s => {
-        const li = document.createElement('li');
-        li.innerText = s;
-        feedback.appendChild(li);
-      });
-    }
-  }
+        const scoreText = ['Very weak','Weak','Fair','Strong','Very strong'][score];
+        scoreEl.innerText = `Strength: ${scoreText} (${pct}%)`;
 
-  pwInput.addEventListener('input', updateMeter);
-  updateMeter(); // initial
-});
-</script>
+        feedbackEl.innerHTML = '';
+        if (res.feedback && res.feedback.suggestions) {
+          res.feedback.suggestions.forEach(s => {
+            const li = document.createElement('li');
+            li.innerText = s;
+            feedbackEl.appendChild(li);
+          });
+        }
+      }
 
+      pwInput.addEventListener('input', updateMeter);
+    });
+  </script>
 </body>
 </html>
