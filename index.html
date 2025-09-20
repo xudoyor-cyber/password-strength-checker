@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Password Strength Checker - SafeZone</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color:#111; }
+    h1 { color:#1a73e8; }
+    input[type=password]{ padding:8px; width:60%; margin-right:8px; }
+    button{ padding:8px 12px; }
+    .card{ background:#f7f9fc; padding:16px; border-radius:8px; margin-top:20px; }
+    .strong{ color:green; font-weight:700; }
+    .weak{ color:red; font-weight:700; }
+    ul{ margin-top:8px; }
+    pre{ background:#eee; padding:10px; border-radius:6px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <h1>SafeZone — Password Strength Checker</h1>
+  <p>Type a password to evaluate its strength. This tool helps you learn how to create stronger passwords.</p>
+
+  <form method="post" autocomplete="off">
+    <input type="password" name="password" placeholder="Enter password to check" required>
+    <button type="submit">Check</button>
+  </form>
+
+  {% if result %}
+  <div class="card">
+    <h3>Result: <span class="{{ 'strong' if result.score_pct>=60 else 'weak' }}">{{ result.strength }}</span></h3>
+    <p><strong>Score:</strong> {{ result.score_pct }}% ({{ result.points }} points)</p>
+    <p><strong>Length:</strong> {{ result.length }} characters — Unique characters: {{ result.unique_chars }}</p>
+    <p><strong>Contains:</strong>
+      {% if result.lower %} lower {% endif %}
+      {% if result.upper %} upper {% endif %}
+      {% if result.digit %} digit {% endif %}
+      {% if result.special %} special {% endif %}
+    </p>
+    {% if result.suggestions %}
+    <h4>Suggestions to improve:</h4>
+    <ul>
+      {% for s in result.suggestions %}
+      <li>{{ s }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h4>Why this matters</h4>
+    <p>Strong passwords are a basic but critical part of protecting accounts and data.</p>
+    <h4>Example (do not use real passwords):</h4>
+    <pre>Weak: password123  | Strong: Tr0ub4dor&3x!</pre>
+  </div>
+  {% endif %}
+
+  <hr>
+  <p>Project by <strong>Surijiddinov Xudoyor</strong> — part of SafeZone cyber demos. See source on GitHub.</p>
+</body>
+</html>
