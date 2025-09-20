@@ -1,3 +1,9 @@
+![Project Banner](assets/banner.png)
+
+<p align="center">
+  <img src="assets/banner.png" alt="Project Banner" width="600">
+</p>
+
 # 🔐 SafeZone — Password Strength Checker
 
 This project is part of the **SafeZone Cybersecurity Demo Series**.  
